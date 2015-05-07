@@ -35,10 +35,11 @@ public class OMETIFFHandler implements AcqOutputHandler {
 	private int stacks, timesteps;
 	private AcqRow[] acqRows;
 	private double deltat;
-	
+
+
 	public OMETIFFHandler(CMMCore iCore, File outDir, String xyDev,
-			String cDev, String zDev, String tDev, AcqRow[] acqRows,
-			int iTimeSteps, double iDeltaT) {
+			String cDev, String zDev, String tDev, String thetaDev, AcqRow[] acqRows,
+			int iTimeSteps, double iDeltaT,SPIMIllumination illumination) {
 
 		if(outDir == null || !outDir.exists() || !outDir.isDirectory())
 			throw new IllegalArgumentException("Null path specified: " + outDir.toString());
@@ -74,7 +75,7 @@ public class OMETIFFHandler implements AcqOutputHandler {
 				meta.setChannelSamplesPerPixel(new PositiveInteger(1), image, 0);
 
 				for (int t = 0; t < timesteps; ++t) {
-					String fileName = makeFilename(image, t);
+					String fileName = makeFilename(image, t, illumination);
 					for(int z = 0; z < depth; ++z) {
 						int td = depth*t + z;
 
@@ -100,7 +101,7 @@ public class OMETIFFHandler implements AcqOutputHandler {
 				meta.setPixelsTimeIncrement(new Time(new Double(deltat), UNITS.S), image);
 			}
 
-			writer = new ImageWriter().getWriter(makeFilename(0, 0));
+			writer = new ImageWriter().getWriter(makeFilename(0, 0, illumination));
 
 			writer.setWriteSequentially(true);
 			writer.setMetadataRetrieve(meta);
@@ -113,8 +114,12 @@ public class OMETIFFHandler implements AcqOutputHandler {
 		}
 	}
 
-	private static String makeFilename(int angleIndex, int timepoint) {
+	private static String makeFilename(int angleIndex, int timepoint, SPIMIllumination illumination) {
+            if(illumination == SPIMIllumination.LASER){
 		return String.format("spim_TL%02d_Angle%01d.ome.tiff", (timepoint + 1), angleIndex);
+            } else  {
+                return String.format("spim_TL%02d_Row%01d.ome.tiff", (timepoint + 1), angleIndex);
+            }
 	}
 
 	private void openWriter(int angleIndex, int timepoint) throws Exception {

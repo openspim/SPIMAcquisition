@@ -25,6 +25,8 @@ import spim.setup.SPIMSetup;
 import spim.setup.SPIMSetup.SPIMDevice;
 import spim.setup.Stage;
 import spim.progacq.AcqRow.DeviceValueSet;
+import spim.setup.DAC;
+import spim.setup.FilterWheel;
 
 public class ProgrammaticAcquisitor {
 	public static class Profiler {
@@ -194,13 +196,17 @@ public class ProgrammaticAcquisitor {
 
 			if (dev instanceof Stage) // TODO: should this be different?
 				((Stage)dev).setPosition(values.getStartPosition());
+                        else if (dev instanceof DAC){
+                                ((DAC)dev).setProperty("Volts", values.getStartPosition());
+                        }else if (dev instanceof FilterWheel)
+                                ((FilterWheel)dev).setProperty("State", values.getStartPosition());
 			else
 				throw new Exception("Unknown device type for \"" + dev
 						+ "\"");
 		}
 		core.waitForSystem();
 	}
-	
+
 	private static void updateLiveImage(MMStudio f, TaggedImage ti)
 	{
 		try {
@@ -317,6 +323,9 @@ public class ProgrammaticAcquisitor {
 							if(setup.getLaser() != null)
 								setup.getLaser().setPoweredOn(true);
 
+                                                        else if(setup.getDACShutter() != null){
+                                                                setup.getDACShutter().setShutterOpen(true);
+                                                        }
 							core.clearCircularBuffer();
 							core.startContinuousSequenceAcquisition(0);
 
@@ -337,6 +346,9 @@ public class ProgrammaticAcquisitor {
 
 							if(setup.getLaser() != null)
 								setup.getLaser().setPoweredOn(false);
+                                                        else if(setup.getDACShutter() != null){
+                                                                setup.getDACShutter().setShutterOpen(false);
+                                                        }
 						} catch (Throwable e) {
 							lastExc = e;
 						}
@@ -387,6 +399,9 @@ public class ProgrammaticAcquisitor {
 				if(params.isIllumFullStack() && setup.getLaser() != null)
 					setup.getLaser().setPoweredOn(true);
 
+                                else if(params.isIllumFullStack()){
+					setup.getDACShutter().setShutterOpen(true);
+                                }
 				if(params.doProfiling())
 					prof.get("Output").start();
 
@@ -485,6 +500,9 @@ public class ProgrammaticAcquisitor {
 				if(params.isIllumFullStack() && setup.getLaser() != null)
 					setup.getLaser().setPoweredOn(false);
 
+                                else if(params.isIllumFullStack()){
+					setup.getDACShutter().setShutterOpen(false);
+                                }
 				if(ad != null) {
 					ad.finishStack();
 

@@ -87,10 +87,13 @@ import spim.progacq.ProgrammaticAcquisitor;
 import spim.progacq.ProjDiffAntiDrift;
 import spim.progacq.RangeSlider;
 import spim.progacq.StepTableModel;
+import spim.setup.DAC;
+import spim.setup.FilterWheel;
 
 public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	private static final String SPIM_RANGES = "SPIM Ranges";
 	private static final String POSITION_LIST = "Position List";
+	private static final String CHANNEL_LIST = "Position and Channel List";
 	private static final String VIDEO_RECORDER = "Video";
 	private static final String BTN_STOP = "Abort!";
 	private static final String BTN_START = "Oh Snap!";
@@ -132,6 +135,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	protected SPIMSetup setup;
 	protected DeviceManager devMgr;
+	protected SPIMDACManager dacMgr;
 
 	protected JFrame frame;
 	protected JSpinner settleTime;
@@ -162,6 +166,8 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	private JLabel estimatesText;
 
 	private JCheckBox asyncCheckbox;
+
+	private JButton dacMgrBtn;
 
 	// MMPlugin stuff
 
@@ -399,6 +405,16 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 			}
 		});
 
+		dacMgrBtn = new JButton("DAC Manager");
+		dacMgrBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				if (dacMgr == null)
+					dacMgr = new SPIMDACManager(setup);
+				dacMgr.setVisible(true);
+			}
+		});
+
 		addLine(left, Justification.LEFT, "x:", xPosition, "y:", yPosition, "z:", zPosition, "angle:", rotation);
 		addLine(left, Justification.STRETCH, xSlider);
 		left.add(Box.createVerticalStrut(8));
@@ -599,16 +615,30 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 						idx = selectedRows[selectedRows.length - 1];
 
 					Vector3D pos = setup.getPosition();
-
-					model.insertRow(idx,
-						new AcqRow(
-							model.getColumns(),
-							(Double) pos.getX(),
-							(Double) pos.getY(),
-							(Double) setup.getAngle(),
-							(Double) pos.getZ()
-						)
-					);
+					if (dacMgrBtn.isEnabled()) {
+						model.insertRow(idx,
+							new AcqRow(
+								model.getColumns(),
+								(Double) pos.getX(),
+								(Double) pos.getY(),
+								(Double) setup.getDACChannel(1).getPropertyDouble("Volts"),
+								(Double) setup.getDACChannel(2).getPropertyDouble("Volts"),
+								(Double) setup.getDACChannel(3).getPropertyDouble("Volts"),
+								(Double) setup.getDACChannel(4).getPropertyDouble("Volts"),
+								(Double) setup.getDACChannel(5).getPropertyDouble("Volts"),
+								(Double) setup.getDACChannel(6).getPropertyDouble("Volts"),
+								(String)setup.getDevice(SPIMDevice.EMISSIONWHEEL).getProperty("State"),
+								(Double) setup.getAngle(),
+								(Double) pos.getZ()));
+					} else {
+						model.insertRow(idx,
+							new AcqRow(
+								model.getColumns(),
+								(Double) pos.getX(),
+								(Double) pos.getY(),
+								(Double) setup.getAngle(),
+								(Double) pos.getZ()));
+					}
 				} catch(Throwable t) {
 					JOptionPane.showMessageDialog(acqPositionsTable,
 							"Couldn't mark: " + t.getMessage());
@@ -646,15 +676,30 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					double range = (Double)acqSliceRange.getValue();
 					double step = (Double)acqSliceStep.getValue();
 
-					model.insertRow(idx,
-						new AcqRow(
-							model.getColumns(),
-							(Double) xyz.getX(),
-							(Double) xyz.getY(),
-							(Double) theta,
-							String.format("%.3f:%.3f:%.3f", xyz.getZ(), step, (xyz.getZ() + range))
-						)
-					);
+					if (dacMgrBtn.isEnabled()) {
+						model.insertRow(idx,
+							new AcqRow(
+								model.getColumns(),
+								(Double) xyz.getX(),
+								(Double) xyz.getY(),
+								setup.getDACChannel(1).getPropertyDouble("Volts"),
+								setup.getDACChannel(2).getPropertyDouble("Volts"),
+								setup.getDACChannel(3).getPropertyDouble("Volts"),
+								setup.getDACChannel(4).getPropertyDouble("Volts"),
+								setup.getDACChannel(5).getPropertyDouble("Volts"),
+								setup.getDACChannel(6).getPropertyDouble("Volts"),
+								setup.getDevice(SPIMDevice.EMISSIONWHEEL).getProperty("State"),
+								(Double) theta,
+								String.format("%.3f:%.3f:%.3f", xyz.getZ(), step, (xyz.getZ() + range))));
+					} else {
+						model.insertRow(idx,
+							new AcqRow(
+								model.getColumns(),
+								(Double) xyz.getX(),
+								(Double) xyz.getY(),
+								(Double) theta,
+								String.format("%.3f:%.3f:%.3f", xyz.getZ(), step, (xyz.getZ() + range))));
+					}
 				} catch(Throwable t) {
 					JOptionPane.showMessageDialog(acqPositionsTable, "Couldn't create stack: " + t.getMessage());
 
@@ -683,8 +728,12 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		JScrollPane tblScroller = new JScrollPane(acqPositionsTable = new JTable());
 		tblScroller.setPreferredSize(new Dimension(tblScroller.getSize().width, 256));
-
-		StepTableModel model = new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z);
+		StepTableModel model;
+		if (dacMgrBtn.isEnabled()) {
+			model = new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.DAC1,  SPIMDevice.DAC2,  SPIMDevice.DAC3,  SPIMDevice.DAC4,  SPIMDevice.DAC5,  SPIMDevice.DAC6, SPIMDevice.EMISSIONWHEEL, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z);
+		} else {
+			model = new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z);
+		}
 
 		acqPositionsTable.setFillsViewportHeight(true);
 		acqPositionsTable.setModel(model);
@@ -728,7 +777,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		outer.setLayout(new BoxLayout(outer, BoxLayout.PAGE_AXIS));
 
 		JPanel controls = new JPanel();
-		controls.setLayout(new GridLayout(4,1));
+		controls.setLayout(new GridLayout(5,1));
 
 		controls.add(acqMarkPos);
 		controls.add(acqRemovePos);
@@ -814,6 +863,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		} catch(Exception e) {
 			ReportingUtils.logError(e);
 		};
+		dacMgr = new SPIMDACManager(setup);
 
 		// TODO: find out correct values
 		exposureSlider = new SteppedSlider("Exposure:", 10, 1000, 1, defExposure, SteppedSlider.LABEL_LEFT | SteppedSlider.INCREMENT_BUTTONS) {
@@ -1183,6 +1233,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		String zStageLabel = setup.getZStage() != null ? setup.getZStage().getLabel() : null;
 		String twisterLabel = setup.getThetaStage() != null ? setup.getThetaStage().getLabel() : null;
 		String laserLabel = setup.getLaser() != null ? setup.getLaser().getLabel() : null;
+		String dacLabel = setup.getDACShutter() != null ? setup.getDACShutter().getLabel() : null;
 		String cameraLabel = setup.getCamera() != null ? setup.getCamera().getLabel() : null;
 
 		xPosition.setEnabled(acqThread == null && xStageLabel != null);
@@ -1194,6 +1245,9 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		ySlider.setEnabled(acqThread == null && yStageLabel != null);
 		zSlider.setEnabled(acqThread == null && zStageLabel != null);
 		rotationSlider.setEnabled(acqThread == null && twisterLabel != null);
+
+		dacMgr.setEnabled(acqThread == null && dacLabel != null);
+		dacMgrBtn.setEnabled(acqThread == null && dacLabel != null);
 
 		laserPower.setEnabled(acqThread == null && laserLabel != null);
 		exposure.setEnabled(acqThread == null && cameraLabel != null);
@@ -1253,6 +1307,25 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		zSlider.setEnabled(setup.isConnected(SPIMDevice.STAGE_Z));
 		rotationSlider.setEnabled(setup.isConnected(SPIMDevice.STAGE_THETA));
 		laserSlider.setEnabled(setup.isConnected(SPIMDevice.LASER1));
+
+		dacMgrBtn.setEnabled(setup.isDACIllumination());
+		laseStackCheckbox.setSelected(setup.isDACIllumination());
+		laseStackCheckbox.setEnabled(!setup.isDACIllumination());
+
+		if (!dacMgrBtn.isEnabled() && acqPositionsTable.getModel().getColumnCount() > 4) {
+			acqPositionsTable.setModel(new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z));
+		} else if (dacMgrBtn.isEnabled() && acqPositionsTable.getModel().getColumnCount() <= 4) {
+			acqPositionsTable.setModel(new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.DAC1,  SPIMDevice.DAC2,  SPIMDevice.DAC3,  SPIMDevice.DAC4,  SPIMDevice.DAC5,  SPIMDevice.DAC6, SPIMDevice.EMISSIONWHEEL, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z));
+		}
+
+		if (acqThread != null && devMgr != null && dacMgr != null) {
+			devMgr.setEnabled(false);
+			dacMgr.setEnabled(false);
+		} else if (devMgr != null && dacMgr != null) {
+			devMgr.setEnabled(true);
+			dacMgr.setEnabled(true);
+		}
+
 		exposureSlider.setEnabled(setup.isConnected(SPIMDevice.CAMERA1));
 
 		if (xSlider.isEnabled())
@@ -1455,7 +1528,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	private AcqRow[] getBuiltRows() throws Exception {
 		List<AcqRow> rows = new ArrayList<AcqRow>();
 
-		SPIMDevice[] canonicalDevices = new SPIMDevice[] {SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z};
+		SPIMDevice[] canonicalDevices = new SPIMDevice[] {SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.DAC1,  SPIMDevice.DAC2,  SPIMDevice.DAC3,  SPIMDevice.DAC4,  SPIMDevice.DAC5,  SPIMDevice.DAC6, SPIMDevice.EMISSIONWHEEL, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z};
 
 		if(SPIM_RANGES.equals(acqPosTabs.getSelectedComponent().getName())) {
 			double currentRot = setup.getAngle();
@@ -1815,6 +1888,9 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 			acqThread = null;
 
+			if (setup.isDACIllumination()) {
+				setup.getDACShutter().setShutterOpen(false);
+			}
 			acqGoBtn.setText(BTN_START);
 
 			acqProgress.setString("Not Acquiring");
