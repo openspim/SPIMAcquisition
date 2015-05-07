@@ -50,6 +50,8 @@ public abstract class Device {
 	/**
 	 * Returns true if this device contains a property by the given name. By
 	 * default, just maps to the core call.
+     * @param property device property
+     * @return has the property string
 	 */
 	public boolean hasProperty(String property) {
 		try {

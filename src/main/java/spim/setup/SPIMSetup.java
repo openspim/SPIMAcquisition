@@ -14,13 +14,21 @@ import mmcorej.StrVector;
 import mmcorej.TaggedImage;
 
 public class SPIMSetup {
-	public static enum SPIMDevice {
+	public static enum SPIMDevice {             
 		STAGE_X ("X Stage"),
 		STAGE_Y ("Y Stage"),
 		STAGE_Z ("Z Stage"),
 		STAGE_THETA ("Angle"),
 		LASER1 ("Laser"),
 		LASER2 ("Laser (2)"),
+                DAC1 ("ch1(V)"),
+                DAC2 ("ch2(V)"),
+                DAC3 ("ch3(V)"),
+                DAC4 ("ch4(V)"),
+                DAC5 ("ch5(V)"),
+                DAC6 ("ch6(V)"),
+                DACSHUTTER ("DAC blanking"),
+                EMISSIONWHEEL ("FW(Pos)"),
 		CAMERA1 ("Camera"),
 		CAMERA2 ("Camera (2)"),
 		SYNCHRONIZER ("Synchronizer");
@@ -34,9 +42,14 @@ public class SPIMSetup {
 			return text;
 		}
 	}
+        
+        public static enum SPIMIllumination { 
+            DAC, LASER;
+        }
 
 	private Map<SPIMDevice, Device> deviceMap;
 	private CMMCore core;
+        private SPIMIllumination illumination;
 
 	public SPIMSetup(CMMCore core) {
 		this.core = core;
@@ -85,6 +98,12 @@ public class SPIMSetup {
 	public boolean has4DStage() {
 		return has3DStage() && hasAngle();
 	}
+        
+         public boolean hasDAC(){
+            return !(getDACChannel(1)  == null) || !(getDACChannel(2) == null) || !(getDACChannel(3) == null) ||
+                    !(getDACChannel(4) == null) || !(getDACChannel(5) == null) || !(getDACChannel(6) == null);
+        }
+        
 
 	public boolean isMinimalMicroscope() {
 		return hasZStage() && isConnected(SPIMDevice.CAMERA1);
@@ -116,6 +135,22 @@ public class SPIMSetup {
 			ReportingUtils.logError(e, "Trying to exchange " + (getDevice(type) != null ? getDevice(type).getLabel() : "(null)") + " with " + label);
 		}
 	}
+        
+        public void setIllumination(SPIMIllumination illumination){
+            this.illumination = illumination;
+        }
+        
+        public SPIMIllumination getIllumination(){
+            return illumination;
+        }
+        
+        public boolean isDACIllumination(){
+            if(illumination == SPIMIllumination.LASER){
+                return false;
+            }else{ 
+                return true;
+            }
+        }
 
 	public Stage getXStage() {
 		return (Stage) deviceMap.get(SPIMDevice.STAGE_X);
@@ -136,6 +171,35 @@ public class SPIMSetup {
 	public Laser getLaser() {
 		return (Laser) deviceMap.get(SPIMDevice.LASER1);
 	}
+        
+
+        public DAC getDACChannel(int i) {
+            switch(i){
+                case 1:
+                return (DAC) deviceMap.get(SPIMDevice.DAC1);
+                case 2:
+                return (DAC) deviceMap.get(SPIMDevice.DAC2);
+                case 3:
+                return (DAC) deviceMap.get(SPIMDevice.DAC3);
+                case 4:
+                return (DAC) deviceMap.get(SPIMDevice.DAC4);
+                case 5:
+                return (DAC) deviceMap.get(SPIMDevice.DAC5);
+                case 6:
+                return (DAC) deviceMap.get(SPIMDevice.DAC6);
+                default: 
+                return null;
+            }
+            }
+        
+        public Shutter getDACShutter(){
+            return (Shutter) deviceMap.get(SPIMDevice.DACSHUTTER);
+        }
+        
+        public FilterWheel getFilterWheel(){
+                return (FilterWheel) deviceMap.get(SPIMDevice.EMISSIONWHEEL);
+        }
+            
 
 	public Camera getCamera() {
 		return (Camera) deviceMap.get(SPIMDevice.CAMERA1);
@@ -262,18 +326,41 @@ public class SPIMSetup {
 		case LASER2:
 			// TODO: This might not be exact -- Arduino might end up showing up
 			// as a shutter.
+                        // SW Note: it does.
 			return labelOfSecondary(DeviceType.ShutterDevice, core.getShutterDevice());
-
+                case DAC1:
+                        // TODO: need a more elegant way of dealing with the labels
+                        // These are HARDWIRED to the default MM config as set in the 
+                        // updated arduino firmware-BAD                  
+			return "Arduino-DAC1";
+                case DAC2:
+                        // TODO: need a more elegant way of dealing with the labels
+			return "Arduino-DAC2";
+                case DAC3:
+                        // TODO: need a more elegant way of dealing with the labels
+			return "Arduino-DAC3";
+                case DAC4:
+                        // TODO: need a more elegant way of dealing with the labels
+			return "Arduino-DAC4";
+                case DAC5:
+                        // TODO: need a more elegant way of dealing with the labels
+			return "Arduino-DAC5";
+                case DAC6:
+                        // TODO: need a more elegant way of dealing with the labels
+			return "Arduino-DAC6"; 
+                case DACSHUTTER:
+			return core.getShutterDevice(); 
+                case EMISSIONWHEEL:
+                        // TODO: need a more elegant way of dealing with the labels
+                        return "Wheel-A";            
 		case CAMERA1:
 			return core.getCameraDevice();
 
 		case CAMERA2:
 			return labelOfSecondary(DeviceType.CameraDevice, core.getCameraDevice());
-
 		case SYNCHRONIZER:
-			// wot
+                        // TODO: not implemented yet through Arduino
 			return null;
-
 		default:
 			return null;
 		}

@@ -1,5 +1,6 @@
 package spim.progacq;
 
+import ij.IJ;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.EnumMap;
@@ -113,24 +114,24 @@ public class AcqRow {
 
 	public AcqRow(SPIMDevice[] devs, String[] infos) {
 		posMap = new EnumMap<SPIMDevice, DeviceValueSet>(SPIMDevice.class);
-
 		for(int i = 0; i < devs.length; ++i)
 			setValueSet(devs[i], infos[i]);
+                
 	}
 
 	public AcqRow(SPIMDevice[] devs, Object... infos) {
 		posMap = new EnumMap<SPIMDevice, DeviceValueSet>(SPIMDevice.class);
-
 		for(int i = 0; i < devs.length; ++i)
 			setValueSet(devs[i], infos[i]);
+                
 	}
 
 	public void setValueSet(SPIMDevice dev, String totalInfo) {
 		setValueSet(dev, (Object) totalInfo.trim());
 	}
 
-	public void setValueSet(SPIMDevice dev, Object totalInfo) {
-		if(totalInfo == null) {
+	public void setValueSet(SPIMDevice dev, Object totalInfo) {	
+            if(totalInfo == null) {
 			posMap.remove(dev);
 			return;
 		}

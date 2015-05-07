@@ -27,7 +27,7 @@ public class Laser extends Device {
 	 * Store the current MM shutter, for operations that require replacing the
 	 * default shutter (i.e. get/setShutterOpen).
 	 * 
-	 * @throws Exception
+	 * @throws Exception null, etc.
 	 */
 	protected void pushShutter() throws Exception {
 		oldShutter = core.getShutterDevice();
@@ -36,7 +36,7 @@ public class Laser extends Device {
 	/**
 	 * Restore the stored MM shutter.
 	 * 
-	 * @throws Exception
+	 * @throws Exception null, etc.
 	 */
 	protected void popShutter() throws Exception {
 		if (oldShutter == null)
@@ -54,7 +54,7 @@ public class Laser extends Device {
 	public void setPoweredOn(boolean open) {
 		try {
 			pushShutter();
-			core.setShutterOpen(open);
+			 
 			popShutter();
 		} catch (Exception e) {
 			ReportingUtils.logError(e, "Couldn't open/close shutter " + label);
