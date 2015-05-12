@@ -139,7 +139,7 @@ public class FitDisk {
 
 	/**
 	 * Returns the vector normal to the best-fit plane.
-	 * @return
+	 * @return normal vector
 	 */
 	public Vector3D getNormal() {
 		return normal;

@@ -10,7 +10,7 @@ public interface AcqOutputHandler {
 	 * finalize (specifically if acquisition is interrupted).
 	 *
 	 * @return an ImagePlus representing the acquisition
-	 * @throws Exception
+	 * @throws Exception null etc
 	 */
 	public abstract ImagePlus getImagePlus() throws Exception;
 
@@ -18,7 +18,7 @@ public interface AcqOutputHandler {
 	 * Called by the acquisition code when about to begin snapping a new stack.
 	 * 
 	 * @param axis The dimension along which the stack is beginning.
-	 * @throws Exception
+	 * @throws Exception null, etc.
 	 */
 	void beginStack(int axis) throws Exception;
 
@@ -32,7 +32,7 @@ public interface AcqOutputHandler {
 	 * @param Z the X coordinate at which the image was acquired
 	 * @param theta the theta at which the image was acquired
 	 * @param deltaT the time since beginning, in seconds, at which the image was acquired
-	 * @throws Exception
+	 * @throws Exception null, etc.
 	 */
 	public abstract void processSlice(ImageProcessor ip, double X, double Y, double Z, double theta, double deltaT) throws Exception;
 
@@ -40,7 +40,7 @@ public interface AcqOutputHandler {
 	 * A stack has finished being acquired; react accordingly.
 	 *
 	 * @param depth The dimension along which the stack has been finished.
-	 * @throws Exception
+	 * @throws Exception null, etc.
 	 */
 	public abstract void finalizeStack(int depth) throws Exception;
 
@@ -50,7 +50,7 @@ public interface AcqOutputHandler {
 	 * the handler should be in a state where it can accept new slices as an
 	 * entirely different acquisition.
 	 *
-	 * @throws Exception
+	 * @throws Exception null etc, .
 	 */
 	public abstract void finalizeAcquisition() throws Exception;
 
