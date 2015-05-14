@@ -324,8 +324,9 @@ public class SPIMSetup {
 			return core.getShutterDevice();
 
 		case LASER2:
-			// TODO: This might not be exact -- Arduino can
+			// TODO: This might not be exact -- Arduino might end up showing up
 			// as a shutter.
+                        // SW Note: it does.
 			return labelOfSecondary(DeviceType.ShutterDevice, core.getShutterDevice());
                 case DAC1:
                         // TODO: need a more elegant way of dealing with the labels

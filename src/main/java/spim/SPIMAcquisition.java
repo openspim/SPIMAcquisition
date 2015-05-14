@@ -121,7 +121,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	private JTextField acqSaveDir;
 	private JButton acqGoBtn;
 	private Thread acqThread;
-	
+
 	private SPIMCalibrator calibration;
 
 	// TODO: read these from the properties
@@ -177,7 +177,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	 */
 	public static String menuName = "Acquire SPIM image";
 	public static String tooltipDescription = "The OpenSPIM GUI";
-	
+
 	/**
 	 * The main app calls this method to remove the module window
 	 */
@@ -217,19 +217,19 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		setup = SPIMSetup.createDefaultSetup(mmc);
 
-		if(!(setup.is3DMicroscope() && setup.hasAngle()))
+		if (!(setup.is3DMicroscope() && setup.hasAngle()))
 			JOptionPane.showMessageDialog(frame, "Your setup appears to be invalid. Please make sure you have a camera and 4D stage set up.\nYou may need to restart Micro-Manager for the OpenSPIM plugin to detect a correct setup.");
 
 		ensurePixelResolution();
 		initUI();
 		configurationChanged();
 
-/*		if(!gui.isLiveModeOn() && setup.isConnected(SPIMDevice.CAMERA1));
+/*		if (!gui.isLiveModeOn() && setup.isConnected(SPIMDevice.CAMERA1))
 			gui.enableLiveMode(true);*/
 
 		frame.setVisible(true);
 
-/*		if(autoReplaceMMControls.isSelected())
+/*		if (autoReplaceMMControls.isSelected())
 			hookLiveControls(true);*/
 	}
 
@@ -237,14 +237,15 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	/**
 	 * Embed our listeners in the live window's canvas space.
+     * @param hook set live update listeners
 	 */
 	public void hookLiveControls(boolean hook) {
-		if(!gui.isLiveModeOn() || hook == liveControlsHooked)
+		if (!gui.isLiveModeOn() || hook == liveControlsHooked)
 			return;
 
 		ImageWindow win = gui.getSnapLiveWin();
-		if(win != null && win.isVisible()) {
-			if(!hook) {
+		if (win != null && win.isVisible()) {
+			if (!hook) {
 				listener.detach();
 				liveControlsHooked = false;
 			} else {
@@ -260,7 +261,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	 */
 	public void ensurePixelResolution() {
 		try {
-			if(mmc.getPixelSizeUm() <= 0) {
+			if (mmc.getPixelSizeUm() <= 0) {
 				mmc.definePixelSizeConfig(UNCALIBRATED, "Core", "Initialize", "1");
 				mmc.setPixelSizeUm(UNCALIBRATED, 1);
 				mmc.setPixelSizeConfig(UNCALIBRATED);
@@ -374,8 +375,8 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		calibrateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				if(calibration == null) {
-					if((ae.getModifiers() & ActionEvent.ALT_MASK) != 0) {
+				if (calibration == null) {
+					if ((ae.getModifiers() & ActionEvent.ALT_MASK) != 0) {
 						calibration = new SPIMManualCalibrator(mmc, gui, setup);
 					} else {
 						calibration = new SPIMAutoCalibrator(mmc, gui, setup);
@@ -398,7 +399,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		devMgrBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				if(devMgr == null)
+				if (devMgr == null)
 					devMgr = new DeviceManager(setup);
 
 				devMgr.setVisible(true);
@@ -437,7 +438,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		homeBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				if(JOptionPane.showConfirmDialog(homeBtn, "Are you sure you want to home the motors?\n\nPlease remove any sample before doing so\nto prevent damage to the sample and/or lenses.") == JOptionPane.YES_OPTION)
+				if (JOptionPane.showConfirmDialog(homeBtn, "Are you sure you want to home the motors?\n\nPlease remove any sample before doing so\nto prevent damage to the sample and/or lenses.") == JOptionPane.YES_OPTION)
 				{
 					SPIMSetup setup = SPIMAcquisition.this.setup;
 					setup.getXStage().home();
@@ -451,7 +452,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		stageControls.setName("Stage Controls");
 		stageControls.setLayout(new BoxLayout(stageControls, BoxLayout.PAGE_AXIS));
 		stageControls.add(left);
-		addLine(stageControls, Justification.RIGHT, autoReplaceMMControls, homeBtn, devMgrBtn, pixCalibBtn, calibrateButton);
+		addLine(stageControls, Justification.RIGHT, autoReplaceMMControls, homeBtn, devMgrBtn, dacMgrBtn, pixCalibBtn, calibrateButton);
 
 		acqPosTabs = new JTabbedPane();
 		
@@ -611,7 +612,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					int idx = model.getRowCount();
 
 					int[] selectedRows = acqPositionsTable.getSelectedRows();
-					if(selectedRows.length > 0)
+					if (selectedRows.length > 0)
 						idx = selectedRows[selectedRows.length - 1];
 
 					Vector3D pos = setup.getPosition();
@@ -667,7 +668,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					int idx = model.getRowCount();
 
 					int[] selectedRows = acqPositionsTable.getSelectedRows();
-					if(selectedRows.length > 0)
+					if (selectedRows.length > 0)
 						idx = selectedRows[selectedRows.length - 1];
 
 					Vector3D xyz = setup.getPosition();
@@ -728,7 +729,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		JScrollPane tblScroller = new JScrollPane(acqPositionsTable = new JTable());
 		tblScroller.setPreferredSize(new Dimension(tblScroller.getSize().width, 256));
-		StepTableModel model;
+		StepTableModel model = new StepTableModel();
 		if (dacMgrBtn.isEnabled()) {
 			model = new StepTableModel(SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.DAC1,  SPIMDevice.DAC2,  SPIMDevice.DAC3,  SPIMDevice.DAC4,  SPIMDevice.DAC5,  SPIMDevice.DAC6, SPIMDevice.EMISSIONWHEEL, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z);
 		} else {
@@ -740,12 +741,12 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		acqPositionsTable.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent ke) {
-				if(ke.isControlDown() && ke.getKeyCode() == KeyEvent.VK_V) {
+				if (ke.isControlDown() && ke.getKeyCode() == KeyEvent.VK_V) {
 					try {
 						String data = (String) java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null).getTransferData(DataFlavor.stringFlavor);
 
 						String[] lines = data.split("\n");
-						for(String line : lines)
+						for (String line : lines)
 							((StepTableModel)acqPositionsTable.getModel()).insertRow((Object[]) line.split("\t"));
 					} catch(Exception e) {
 						IJ.handleException(e);
@@ -757,7 +758,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		acqPositionsTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent me) {
-				if(acqPositionsTable.getSelectedRowCount() == 1 &&
+				if (acqPositionsTable.getSelectedRowCount() == 1 &&
 						me.getClickCount() == 2) {
 					StepTableModel mdl = (StepTableModel)((JTable)me.getComponent()).getModel();
 					int rowidx = ((JTable)me.getComponent()).getSelectedRow();
@@ -790,9 +791,9 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		outer.add(Box.createVerticalGlue());
 
 		acqTableTab.add(outer);
-		acqTableTab.setName(POSITION_LIST);
+		acqTableTab.setName(CHANNEL_LIST);
 
-		acqPosTabs.add(POSITION_LIST, acqTableTab);
+		acqPosTabs.add(CHANNEL_LIST, acqTableTab);
 
 		JPanel acqVideoTab = (JPanel) LayoutUtils.vertPanel(
 			Box.createVerticalGlue(),
@@ -840,7 +841,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		int deflp = (int) ((setup.getLaser() != null ? setup.getLaser().getPower() : 1) * 1000);
 		int maxlp = (int) ((setup.getLaser() != null ? setup.getLaser().getMaxPower() : 1) * 1000);
 
-		if(deflp == 0) {
+		if (deflp == 0) {
 			deflp = 1;
 		}
 
@@ -947,7 +948,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 				fc.setFileSelectionMode(VIDEO_RECORDER.equals(acqPosTabs.getSelectedComponent().getName()) ?
 						JFileChooser.FILES_AND_DIRECTORIES : JFileChooser.DIRECTORIES_ONLY);
 
-				if(fc.showDialog(frame, "Select") == JFileChooser.APPROVE_OPTION)
+				if (fc.showDialog(frame, "Select") == JFileChooser.APPROVE_OPTION)
 					acqSaveDir.setText(fc.getSelectedFile().getAbsolutePath());
 			};
 		});
@@ -1095,7 +1096,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	@SuppressWarnings("serial")
 	private static SteppedSlider makeStageSlider(final SPIMSetup setup, final SPIMDevice dev, double min, double max, double step, int options) {
-		if(setup.getDevice(dev) == null || !(setup.getDevice(dev) instanceof Stage))
+		if (setup.getDevice(dev) == null || !(setup.getDevice(dev) instanceof Stage))
 			throw new IllegalArgumentException("makeStageSliderSafe given a non-Stage device");
 
 		Stage stage = (Stage) setup.getDevice(dev);
@@ -1108,7 +1109,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		return new SteppedSlider(dev.getText(), min, max, step, def, options) {
 			@Override
 			public void valueChanged() {
-				if(setup.getDevice(dev) == null)
+				if (setup.getDevice(dev) == null)
 					return;
 
 				((Stage)setup.getDevice(dev)).setPosition(getValue());
@@ -1134,25 +1135,28 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		// First, determine the number of rows, and estimate the amount of
 		// storage required.
 		long count = 0, bytesperimg;
-		if(SPIM_RANGES.equals(acqPosTabs.getSelectedComponent().getName())) {
+		if (SPIM_RANGES.equals(acqPosTabs.getSelectedComponent().getName())) {
 			try {
 				count = estimateRowCount(getRanges());
 			} catch (Exception e) {
 				estimatesText.setText("An exception occurred: " + e.getMessage());
 				return;
 			};
-		} else if(POSITION_LIST.equals(acqPosTabs.getSelectedComponent().getName())) {
-			for(AcqRow row : ((StepTableModel)acqPositionsTable.getModel()))
+		} else if (POSITION_LIST.equals(acqPosTabs.getSelectedComponent().getName())) {
+			for (AcqRow row : ((StepTableModel)acqPositionsTable.getModel()))
 				count += row.getDepth();
-		} else if(VIDEO_RECORDER.equals(acqPosTabs.getSelectedComponent().getName())) {
+		} else if (VIDEO_RECORDER.equals(acqPosTabs.getSelectedComponent().getName())) {
 			estimatesText.setText(" Dataset size depends on how long you record for.");
 			return;
+		} else if (CHANNEL_LIST.equals(acqPosTabs.getSelectedComponent().getName())) {
+			for (AcqRow row : ((StepTableModel)acqPositionsTable.getModel()))
+				count += row.getDepth();
 		} else {
 			estimatesText.setText("What tab are you on? (Please report this.)");
 			return;
 		}
 
-		if(acqTimeCB.isSelected()) {
+		if (acqTimeCB.isSelected()) {
 			try {
 				count *= Long.parseLong(acqCountBox.getText());
 			} catch(Exception e) {
@@ -1163,13 +1167,13 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		String s = " Estimates: " + count + " images; " + describeSize(bytesperimg*count);
 
-		if(!"".equals(acqSaveDir.getText())) {
+		if (!"".equals(acqSaveDir.getText())) {
 			File f = new File(acqSaveDir.getText());
-			if(f.exists()) {
+			if (f.exists()) {
 				while(f.getFreeSpace() == 0 && f != null)
 					f = f.getParentFile();
 
-				if(f != null && f.exists()) {
+				if (f != null && f.exists()) {
 					s += " (" + describeSize(f.getFreeSpace()) + " available)";
 				} else {
 					s += " (error traversing filesystem)";
@@ -1193,16 +1197,16 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 			RangeSlider target = null;
 
 			try {
-				if(ae.getSource().equals(acqFetchX)) {
+				if (ae.getSource().equals(acqFetchX)) {
 					target = acqRangeX;
 					value = setup.getXStage().getPosition();
-				} else if(ae.getSource().equals(acqFetchY)) {
+				} else if (ae.getSource().equals(acqFetchY)) {
 					target = acqRangeY;
 					value = setup.getYStage().getPosition();
-				} else if(ae.getSource().equals(acqFetchZ)) {
+				} else if (ae.getSource().equals(acqFetchZ)) {
 					target = acqRangeZ;
 					value = setup.getZStage().getPosition();
-				} else if(ae.getSource().equals(acqFetchT)) {
+				} else if (ae.getSource().equals(acqFetchT)) {
 					target = acqRangeTheta;
 					value = setup.getAngle();
 				} else {
@@ -1215,7 +1219,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 			double min = value - range;
 			double max = value + range;
-			if(ae.getSource().equals(acqFetchT)) {
+			if (ae.getSource().equals(acqFetchT)) {
 				min = Math.max(min, twisterMin);
 				max = Math.min(max, twisterMax);
 			} else {
@@ -1269,11 +1273,11 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		acqTDevCmbo.setModel(new DefaultComboBoxModel(
 				mmc.getLoadedDevicesOfType(DeviceType.StageDevice).toArray()));
 
-		if(mmc.getXYStageDevice() != null)	// TODO: fixme or delete this tab outright...
+		if (mmc.getXYStageDevice() != null)	// TODO: fixme or delete this tab outright...
 			acqXYDevCmbo.setSelectedItem(mmc.getXYStageDevice());
-		if(zStageLabel != null)
+		if (zStageLabel != null)
 			acqZDevCmbo.setSelectedItem(zStageLabel);
-		if(twisterLabel != null)
+		if (twisterLabel != null)
 			acqTDevCmbo.setSelectedItem(twisterLabel);
 
 		acqXYDevCmbo.setEnabled(xStageLabel != null && yStageLabel != null);
@@ -1382,19 +1386,19 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		float start = min;
 
-		if(align == 0) {
+		if (align == 0) {
 			float offset = ((max - min) % step) / 2;
 
 			start = min + (int)offset;
-		} else if(align > 0) {
+		} else if (align > 0) {
 			start = max;
 			step = -step;
 		}
 
-		for(int lbl = 1; lbl < count; ++lbl) {
+		for (int lbl = 1; lbl < count; ++lbl) {
 			float nearPos = start + step*lbl;
 
-			if(round > 0)
+			if (round > 0)
 				nearPos = Math.round(nearPos / round) * round;
 
 			table.put((int)nearPos, new JLabel("" + (int)nearPos));
@@ -1407,7 +1411,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		try {
 			Double[] allowedDoubles = (Double[]) setup.getZStage().getAllowedVelocities().toArray(new Double[0]);
 			String[] allowedValues = new String[allowedDoubles.length];
-			for(int i=0; i < allowedDoubles.length; ++i)
+			for (int i=0; i < allowedDoubles.length; ++i)
 				allowedValues[i] = allowedDoubles[i].toString();
 			String currentValue = Double.toString(setup.getZStage().getVelocity());
 			GenericDialog gd = new GenericDialog("z-stage velocity");
@@ -1449,6 +1453,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	/**
 	 * This main() method is for use with Fiji's Script Editor
+     * @param args parameters
 	 */
 	public static void main(String[] args) {
 		MMStudio app = MMStudio.getInstance();
@@ -1463,20 +1468,20 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent ie) {
-		if(ie.getSource().equals(acqXYDevCB)) {
+		if (ie.getSource().equals(acqXYDevCB)) {
 			acqXYDevCmbo.setEnabled(acqXYDevCB.isSelected());
 			acqRangeX.setEnabled(acqXYDevCB.isSelected());
 			acqRangeY.setEnabled(acqXYDevCB.isSelected());
-		} else if(ie.getSource().equals(acqZDevCB)) {
+		} else if (ie.getSource().equals(acqZDevCB)) {
 			acqRangeZ.setEnabled(acqZDevCB.isSelected());
 			acqZDevCmbo.setEnabled(acqZDevCB.isSelected());
-		} else if(ie.getSource().equals(acqTDevCB)) {
+		} else if (ie.getSource().equals(acqTDevCB)) {
 			acqRangeTheta.setEnabled(acqTDevCB.isSelected());
 			acqTDevCmbo.setEnabled(acqTDevCB.isSelected());
-		} else if(ie.getSource().equals(acqTimeCB)) {
+		} else if (ie.getSource().equals(acqTimeCB)) {
 			acqCountBox.setEnabled(acqTimeCB.isSelected());
 			acqStepBox.setEnabled(acqTimeCB.isSelected());
-		} else if(ie.getSource().equals(acqTimeoutCB)) {
+		} else if (ie.getSource().equals(acqTimeoutCB)) {
 			acqTimeoutValBox.setEnabled(acqTimeoutCB.isSelected());
 			acqTimeoutValBox.setText("" + mmc.getTimeoutMs());
 		}
@@ -1490,15 +1495,15 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 				acqRangeZ.getRange()
 		};
 
-		if(!acqXYDevCB.isSelected()) {
+		if (!acqXYDevCB.isSelected()) {
 			ranges[0][2] = ranges[0][0] = setup.getXStage().getPosition();
 			ranges[1][2] = ranges[1][0] = setup.getYStage().getPosition();
 		};
 
-		if(!acqTDevCB.isSelected())
+		if (!acqTDevCB.isSelected())
 			ranges[2][2] = ranges[2][0] = setup.getAngle();
 
-		if(!acqZDevCB.isSelected())
+		if (!acqZDevCB.isSelected())
 			ranges[3][2] = ranges[3][0] = setup.getZStage().getPosition();
 
 		return ranges;
@@ -1512,7 +1517,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	}
 
 	private Vector3D applyCalibratedRotation(Vector3D pos, double dtheta) {
-		if(calibration == null || !calibration.getIsCalibrated())
+		if (calibration == null || !calibration.getIsCalibrated())
 			return pos;
 
 		Vector3D rotOrigin = calibration.getRotationOrigin();
@@ -1530,14 +1535,14 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 		SPIMDevice[] canonicalDevices = new SPIMDevice[] {SPIMDevice.STAGE_X, SPIMDevice.STAGE_Y, SPIMDevice.DAC1,  SPIMDevice.DAC2,  SPIMDevice.DAC3,  SPIMDevice.DAC4,  SPIMDevice.DAC5,  SPIMDevice.DAC6, SPIMDevice.EMISSIONWHEEL, SPIMDevice.STAGE_THETA, SPIMDevice.STAGE_Z};
 
-		if(SPIM_RANGES.equals(acqPosTabs.getSelectedComponent().getName())) {
+		if (SPIM_RANGES.equals(acqPosTabs.getSelectedComponent().getName())) {
 			double currentRot = setup.getAngle();
 
 			double[][] ranges = getRanges();
 
-			for(double x = ranges[0][0]; x <= ranges[0][2]; x += ranges[0][1]) {
-				for(double y = ranges[1][0]; y <= ranges[1][2]; y += ranges[1][1]) {
-					for(double t = ranges[2][0]; t <= ranges[2][2]; t += ranges[2][1]) {
+			for (double x = ranges[0][0]; x <= ranges[0][2]; x += ranges[0][1]) {
+				for (double y = ranges[1][0]; y <= ranges[1][2]; y += ranges[1][1]) {
+					for (double t = ranges[2][0]; t <= ranges[2][2]; t += ranges[2][1]) {
 						Vector3D basev = new Vector3D(x, y, (ranges[3][0] + ranges[3][2]) / 2);
 
 						// Apply the transformation required to rotate to the
@@ -1547,7 +1552,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 						String z;
 
-//						if(continuousCheckbox.isSelected())
+//						if (continuousCheckbox.isSelected())
 //							z = ranges[3][0] + "-" + ranges[3][2] + "@10";
 //						else
 							z = ranges[3][0] + ":" + ranges[3][1] + ":" + ranges[3][2];
@@ -1556,7 +1561,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					}
 				}
 			}
-		} else if(POSITION_LIST.equals(acqPosTabs.getSelectedComponent().getName())) {
+		} else if (CHANNEL_LIST.equals(acqPosTabs.getSelectedComponent().getName())) {
 			rows = ((StepTableModel)acqPositionsTable.getModel()).getRows();
 		}
 
@@ -1566,17 +1571,17 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	public List<String[]> buildRowsProper(List<String[]> model) {
 		List<String[]> out = new LinkedList<String[]>();
 
-		for(String[] row : model) {
-			if(row[2].contains(":")) {
+		for (String[] row : model) {
+			if (row[2].contains(":")) {
 				double start = Double.parseDouble(row[2].substring(0,row[2].indexOf(":")));
 				double step = Double.parseDouble(row[2].substring(row[2].indexOf(":")+1,row[2].lastIndexOf(":")));
 				double end = Double.parseDouble(row[2].substring(row[2].lastIndexOf(":")+1));
 
-				if(start < end)
-					for(double z = start; z < end; z += step)
+				if (start < end)
+					for (double z = start; z < end; z += step)
 						out.add(new String[] {row[0], row[1], "" + z});
-				else if(end < start)
-					for(double z = start; z > end; z -= step)
+				else if (end < start)
+					for (double z = start; z > end; z -= step)
 						out.add(new String[] {row[0], row[1], "" + z});
 				else
 					out.add(new String[] {row[0], row[1], "" + start});
@@ -1607,34 +1612,34 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent ae) {
-		if(BTN_START.equals(ae.getActionCommand())) {
+		if (BTN_START.equals(ae.getActionCommand())) {
 
-			if(acqThread != null)
+			if (acqThread != null)
 				acqThread.interrupt();
 
-			if(VIDEO_RECORDER.equals(acqPosTabs.getSelectedComponent().getName())) {
-				if("".equals(acqSaveDir.getText())) {
+			if (VIDEO_RECORDER.equals(acqPosTabs.getSelectedComponent().getName())) {
+				if ("".equals(acqSaveDir.getText())) {
 					JOptionPane.showMessageDialog(null, "Please specify an output file.");
 					return;
 				}
 
 				File tmpSaveFile = new File(acqSaveDir.getText());
 
-				if(tmpSaveFile.exists() && tmpSaveFile.isDirectory())  {
+				if (tmpSaveFile.exists() && tmpSaveFile.isDirectory())  {
 					Date now = Calendar.getInstance().getTime();
 					SimpleDateFormat format = new SimpleDateFormat("d MMM yyyy HH.mm");
 					
 					tmpSaveFile = new File(tmpSaveFile, format.format(now) + ".tiff");
 				}
 
-				if(tmpSaveFile.exists()) {
-					if(!tmpSaveFile.canWrite()) {
+				if (tmpSaveFile.exists()) {
+					if (!tmpSaveFile.canWrite()) {
 						JOptionPane.showMessageDialog(null, "Can't overwrite selected file. Please choose a new output file.");
 						return;
 					}
 
 					int res = JOptionPane.showConfirmDialog(null, "Overwrite \"" + tmpSaveFile.getName() + "\"?", "Confirm Overwrite", JOptionPane.YES_NO_OPTION);
-					if(res != JOptionPane.YES_OPTION)
+					if (res != JOptionPane.YES_OPTION)
 						return;
 				}
 
@@ -1649,7 +1654,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 				}
 
 				// Weird: mkdir once returned false though it was successful...
-				if(!saveDir.delete() || !saveDir.mkdir()) {
+				if (!saveDir.delete() || !saveDir.mkdir()) {
 					JOptionPane.showMessageDialog(null, "Couldn't create temporary directory.");
 					return;
 				}
@@ -1661,7 +1666,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					public void run() {
 						try {
 							boolean live;
-							if(live = gui.isLiveModeOn())
+							if (live = gui.isLiveModeOn())
 								gui.enableLiveMode(false);
 
 							double beginTime = System.nanoTime() / 1e9;
@@ -1681,7 +1686,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 							mmc.stopSequenceAcquisition();
 
-							if(live)
+							if (live)
 								gui.enableLiveMode(true);
 
 							ReportingUtils.logMessage("Video stopped; finishing individual file saving...");
@@ -1710,7 +1715,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 							String infoStr = "Timepoints:\n";
 
-							for(File f : files) {
+							for (File f : files) {
 								String t = String.format("t=%s", f.getName().substring(0, f.getName().indexOf('.') + 4)) + "s";
 								stck.addSlice(t, f.getName());
 								infoStr += t + "\n";
@@ -1723,11 +1728,11 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 							fij.getOriginalFileInfo().fileName = saveFile.getName();
 							IJ.save(fij, saveFile.getAbsolutePath());
 
-							for(File f : files)
-								if(!f.delete())
+							for (File f : files)
+								if (!f.delete())
 									throw new Exception("Couldn't delete temporary image " + f.getName());
 
-							if(!saveDir.delete())
+							if (!saveDir.delete())
 								throw new Exception("Couldn't delete temporary directory " + saveDir.getAbsolutePath());
 						} catch(Throwable t) {
 							JOptionPane.showMessageDialog(null, "Error during acquisition: " + t.getMessage());
@@ -1781,17 +1786,17 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 				params.setContinuous(continuousCheckbox.isSelected());
 
 				final File output;
-				if(!continuousCheckbox.isSelected() && !"".equals(acqSaveDir.getText())) {
+				if (!continuousCheckbox.isSelected() && !"".equals(acqSaveDir.getText())) {
 					output = new File(acqSaveDir.getText());
 
-					if(!output.isDirectory()) {
+					if (!output.isDirectory()) {
 						JOptionPane.showMessageDialog(null, "You must specify a directory.");
 						return;
 					}
 
-					if(output.list().length != 0) {
+					if (output.list().length != 0) {
 						int res = JOptionPane.showConfirmDialog(null, "The destination directory is not empty. Save here anyway?\nWarning: Any OME-TIFF files in the directory will be deleted!", "Confirm Overwrite", JOptionPane.YES_NO_OPTION);
-						if(res == JOptionPane.NO_OPTION)
+						if (res == JOptionPane.NO_OPTION)
 							return;
 
 						File[] list = output.listFiles(new FilenameFilter() {
@@ -1801,17 +1806,17 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 							}
 						});
 
-						for(File f : list)
-							if(!f.delete())
-								if(JOptionPane.showConfirmDialog(null, "Couldn't clean destination directory (" + f.getName() + "). Continue anyway?", "Confirm Append", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+						for (File f : list)
+							if (!f.delete())
+								if (JOptionPane.showConfirmDialog(null, "Couldn't clean destination directory (" + f.getName() + "). Continue anyway?", "Confirm Append", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 									return;
 					}
 
 					AcqOutputHandler handler = new OMETIFFHandler(
-						mmc, output, null, null, null, "t",
-						acqRows, timeSeqs, timeStep
+						mmc, output, null, null, null,  "t", null,
+						acqRows, timeSeqs, timeStep, setup.getIllumination()
 					);
-					if(asyncCheckbox.isSelected())
+					if (asyncCheckbox.isSelected())
 						handler = new AsyncOutputWrapper(handler, (ij.IJ.maxMemory() - ij.IJ.currentMemory())/(mmc.getImageWidth()*mmc.getImageHeight()*mmc.getBytesPerPixel()*2), asyncMonitorCheckbox.isSelected());
 
 					params.setOutputHandler(handler);
@@ -1819,7 +1824,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					output = null;
 				}
 
-				if(antiDriftCheckbox.isSelected())
+				if (antiDriftCheckbox.isSelected())
 					params.setAntiDrift(new AntiDrift.Factory() {
 						@Override
 						public AntiDrift manufacture(AcqParams p, AcqRow r) {
@@ -1842,7 +1847,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					}
 				});
 
-				if(output != null) {
+				if (output != null) {
 					String log = new File(output, "log.txt").getAbsolutePath();
 					System.setProperty("ij.log.file", log);
 					ij.IJ.log("Opened log file " + log);
@@ -1854,7 +1859,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 						try {
 							ImagePlus img = ProgrammaticAcquisitor.performAcquisition(params);
 
-							if(img != null)
+							if (img != null)
 								img.show();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -1875,7 +1880,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 
 			acqThread.start();
 			acqGoBtn.setText(BTN_STOP);
-		} else if(BTN_STOP.equals(ae.getActionCommand())) {
+		} else if (BTN_STOP.equals(ae.getActionCommand())) {
 			try {
 				acqThread.interrupt();
 				acqThread.join(30000);

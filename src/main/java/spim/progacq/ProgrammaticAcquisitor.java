@@ -1,5 +1,6 @@
 package spim.progacq;
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 
@@ -130,6 +131,8 @@ public class ProgrammaticAcquisitor {
 	 * Takes a list of ranges (min/step/max triplets), splits them into discrete
 	 * values, permutes them, then condenses X/Y into ordered pairs.
 	 * 
+         * @param corei
+         *            MMcore
 	 * @param ranges
 	 *            List of triplets corresponding to the devices.
 	 * @param devs
@@ -261,9 +264,9 @@ public class ProgrammaticAcquisitor {
 	 * Performs an acquisition sequence according to the parameters passed.
 	 * 
 	 *
-	 * @param params
-	 * @return
-	 * @throws Exception
+         * @param params acq settings
+	 * @return the image
+	 * @throws Exception null, etc
 	 */
 	public static ImagePlus performAcquisition(final AcqParams params) throws Exception {
 		if(params.isContinuous() && params.isAntiDriftOn())

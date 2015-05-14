@@ -23,6 +23,7 @@ import ome.xml.model.primitives.NonNegativeInteger;
 import ome.xml.model.primitives.PositiveInteger;
 
 import org.micromanager.utils.ReportingUtils;
+import spim.setup.SPIMSetup.SPIMIllumination;
 
 public class OMETIFFHandler implements AcqOutputHandler {
 	private File outputDirectory;
@@ -53,6 +54,8 @@ public class OMETIFFHandler implements AcqOutputHandler {
 		deltat = iDeltaT;
 		outputDirectory = outDir;
 		this.acqRows = acqRows;
+
+
 
 		try {
 			meta = new ServiceFactory().getInstance(OMEXMLService.class).createOMEXMLMetadata();
