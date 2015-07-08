@@ -66,11 +66,12 @@ import mmcorej.DeviceType;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.micromanager.MMStudio;
-import org.micromanager.api.MMPlugin;
-import org.micromanager.api.ScriptInterface;
-import org.micromanager.utils.ImageUtils;
-import org.micromanager.utils.ReportingUtils;
+import org.micromanager.Studio;
+import org.micromanager.MMPlugin;
+import org.scijava.Context;
+import org.scijava.log.LogService;
+import org.scijava.log.StderrLogService;
+import org.scijava.plugin.Parameter;
 
 import spim.acquisition.Params;
 import spim.acquisition.Program;
@@ -88,14 +89,17 @@ import spim.hardware.DeviceManager;
 import spim.hardware.SPIMSetup;
 import spim.hardware.SPIMSetup.SPIMDevice;
 import spim.hardware.Stage;
-
 import spim.io.AsyncOutputHandler;
 import spim.io.OutputHandler;
 import spim.io.LabelledVirtualStack;
 import spim.io.OMETIFFHandler;
 import spim.gui.component.RangeSlider;
 
-public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
+public class SPIMAcquisition extends org.scijava.AbstractContextual implements MMPlugin, ItemListener, ActionListener {
+
+	@Parameter
+	private LogService log;
+
 	private static final String SPIM_RANGES = "SPIM Ranges";
 	private static final String POSITION_LIST = "Position List";
 	private static final String VIDEO_RECORDER = "Video";
@@ -133,9 +137,8 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		twisterMin = -180, twisterMax = 180, twisterStep = 2;
 	protected static int STAGE_OPTIONS = SteppedSlider.INCREMENT_BUTTONS | SteppedSlider.CLAMP_VALUE | SteppedSlider.RANGE_LIMITS;
 
-	protected ScriptInterface app;
 	protected CMMCore mmc;
-	protected MMStudio gui;
+	protected Studio gui;
 
 	protected SPIMSetup setup;
 	protected DeviceManager devMgr;
@@ -178,7 +181,15 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	 */
 	public static String menuName = "Acquire SPIM image";
 	public static String tooltipDescription = "The OpenSPIM GUI";
-	
+
+	private synchronized LogService log() {
+		if (log == null) {
+			final Context context = (Context) IJ.runPlugIn(Context.class.getName(), "");
+			if (context != null) context.inject(this);
+			if (log == null) log = new StderrLogService();
+		}
+		return log;
+	}
 	/**
 	 * The main app calls this method to remove the module window
 	 */
@@ -189,7 +200,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		if (prefs != null) try {
 			prefs.sync();
 		} catch (BackingStoreException e) {
-			ReportingUtils.logError(e, "Could not write preferences: ");
+			log().error("Could not write preferences", e);
 		}
 		frame.dispose();
 		frame = null;
@@ -203,10 +214,9 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	 * @param app - ScriptInterface implementation
 	 */
 	@Override
-	public void setApp(ScriptInterface app) {
-		this.app = app;
-		mmc = app.getMMCore();
-		gui = MMStudio.getInstance();
+	public void setApp(Studio app) {
+		mmc = app.core();
+		gui = app;
 	}
 
 	/**
