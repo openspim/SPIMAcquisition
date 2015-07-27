@@ -80,6 +80,7 @@ public class OMETIFFHandler implements OutputHandler
 					for(int z = 0; z < depth; ++z) {
 						int td = depth*t + z;
 
+						meta.setImageName(fileName, image);
 						meta.setUUIDFileName(fileName, image, td);
 //						meta.setUUIDValue("urn:uuid:" + (String)UUID.nameUUIDFromBytes(fileName.getBytes()).toString(), image, td);
 
@@ -116,7 +117,7 @@ public class OMETIFFHandler implements OutputHandler
 	}
 
 	private static String makeFilename(int angleIndex, int timepoint) {
-		return String.format("spim_TL%02d_Angle%01d.ome.tiff", (timepoint + 1), angleIndex);
+		return String.format("spim_TL%02d_Angle%02d.ome.tiff", (timepoint + 1), angleIndex);
 	}
 
 	private void openWriter(int angleIndex, int timepoint) throws Exception {
