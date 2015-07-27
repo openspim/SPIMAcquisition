@@ -115,7 +115,7 @@ public class OMETIFFHandler implements AcqOutputHandler {
 	}
 
 	private static String makeFilename(int angleIndex, int timepoint) {
-		return String.format("spim_TL%02d_Angle%01d.ome.tiff", (timepoint + 1), angleIndex);
+		return String.format("spim_TL%02d_Angle%02d.ome.tiff", (timepoint + 1), angleIndex);
 	}
 
 	private void openWriter(int angleIndex, int timepoint) throws Exception {
