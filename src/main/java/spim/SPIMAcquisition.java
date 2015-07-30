@@ -122,7 +122,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 	private JTextField acqCountBox;
 	private JCheckBox acqTimeoutCB;
 	private JTextField acqTimeoutValBox;
-	private JTextField acqSaveDir;
+	private JTextField acqSaveDir, acqFilenamePrefix;
 	private JButton acqGoBtn;
 	private Thread acqThread;
 	
@@ -888,9 +888,11 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		laseStackCheckbox.setSelected(false);
 		laseStackCheckbox.setEnabled(true);
 
-		acqSaveDir = new JTextField(48);
+		acqSaveDir = new JTextField(42);
 		acqSaveDir.setEnabled(true);
 
+		acqFilenamePrefix = new JTextField("spim_", 8);
+		acqFilenamePrefix.setEnabled(true);
 		asyncCheckbox = new JCheckBox("Asynchronous Output");
 		asyncCheckbox.setSelected(true);
 		asyncCheckbox.setEnabled(true);
@@ -913,7 +915,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 		addLine(right, Justification.STRETCH, laserSlider);
 		addLine(right, Justification.STRETCH, exposureSlider);
 		addLine(right, Justification.RIGHT, speedControl, antiDriftCheckbox, liveCheckbox, laseStackCheckbox);
-		addLine(right, Justification.RIGHT, "Output directory:", acqSaveDir, pickDirBtn, asyncCheckbox);
+		addLine(right, Justification.LEFT, "Filename prefix:", acqFilenamePrefix, "Output directory:", acqSaveDir, pickDirBtn, asyncCheckbox);
 
 		JPanel bottom = new JPanel();
 		bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
@@ -1754,7 +1756,7 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 					}
 
 					OutputHandler handler = new OMETIFFHandler(
-						mmc, output, null, null, null, "t",
+						mmc, output, acqFilenamePrefix.getText(), null, null, null, "t",
 						acqRows, timeSeqs, timeStep
 					);
 					if(asyncCheckbox.isSelected())
