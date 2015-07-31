@@ -9,6 +9,8 @@ the primary means to acquire image stacks with the OpenSPIM setups.
 
 # Where to get the latest development build
 
+[![Join the chat at https://gitter.im/openspim/SPIMAcquisition](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/openspim/SPIMAcquisition?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This project is built and tested by the ImageJ Jenkins server:
 
 	http://jenkins.imagej.net/view/OpenSPIM/job/SPIMAcquisition/
