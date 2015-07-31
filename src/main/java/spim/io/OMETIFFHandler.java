@@ -34,13 +34,13 @@ public class OMETIFFHandler implements OutputHandler
 	private IFormatWriter writer;
 
 	private CMMCore core;
-	private int stacks, timesteps;
+	private int stacks, timesteps, tiles;
 	private Row[] acqRows;
 	private double deltat;
 	
 	public OMETIFFHandler(CMMCore iCore, File outDir, String filenamePrefix, String xyDev,
 			String cDev, String zDev, String tDev, Row[] acqRows,
-			int iTimeSteps, double iDeltaT) {
+			int iTimeSteps, double iDeltaT, int tileCount) {
 
 		if(outDir == null || !outDir.exists() || !outDir.isDirectory())
 			throw new IllegalArgumentException("Null path specified: " + outDir.toString());
@@ -54,7 +54,10 @@ public class OMETIFFHandler implements OutputHandler
 		deltat = iDeltaT;
 		outputDirectory = outDir;
 		this.acqRows = acqRows;
-
+		tiles = tileCount;
+		int angles = Math.floorDiv(stacks, tiles);
+		ReportingUtils.showMessage("angles="+angles);
+		
 		try {
 			meta = new ServiceFactory().getInstance(OMEXMLService.class).createOMEXMLMetadata();
 
@@ -76,7 +79,7 @@ public class OMETIFFHandler implements OutputHandler
 				meta.setChannelSamplesPerPixel(new PositiveInteger(1), image, 0);
 
 				for (int t = 0; t < timesteps; ++t) {
-					String fileName = makeFilename(filenamePrefix, image, t, 0, false);
+					String fileName = makeFilename(filenamePrefix, image % angles, t, Math.floorDiv(image, angles), (tiles>=1));
 					for(int z = 0; z < depth; ++z) {
 						int td = depth*t + z;
 
