@@ -1779,8 +1779,6 @@ public class SPIMAcquisition implements MMPlugin, ItemListener, ActionListener {
 						tileCount = -2; //in this case counting is harder, because one would have to compare all the rows
 					};
 					
-					ReportingUtils.showMessage("tileCount="+tileCount);
-					
 					OutputHandler handler = new OMETIFFHandler(
 						mmc, output, acqFilenamePrefix.getText(), null, null, null, "t", //what is the purpose of defining parameters and then passing null anyway?
 						acqRows, timeSeqs, timeStep, tileCount
