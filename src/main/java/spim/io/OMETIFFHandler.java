@@ -12,6 +12,7 @@ import loci.formats.IFormatWriter;
 import loci.formats.ImageWriter;
 import loci.formats.MetadataTools;
 import loci.formats.meta.IMetadata;
+import loci.formats.out.OMETiffWriter;
 import loci.formats.services.OMEXMLService;
 import mmcorej.CMMCore;
 import ome.units.UNITS;
@@ -104,6 +105,9 @@ public class OMETIFFHandler implements OutputHandler
 
 			writer = new ImageWriter().getWriter(makeFilename(0, 0));
 
+			if (writer instanceof OMETiffWriter) {
+				((OMETiffWriter) writer).setBigTiff(true);
+			}
 			writer.setWriteSequentially(true);
 			writer.setMetadataRetrieve(meta);
 			writer.setInterleaved(false);
